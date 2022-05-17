@@ -15,12 +15,14 @@ public class PlayerMove : MonoBehaviour
         rigid = GetComponent<Rigidbody2D>(); // 변수 초기화
         spriteRenderer = GetComponent<SpriteRenderer>();
         anim = GetComponent<Animator>();
+        
     }
 
     void Update()
     {
             //Jump
-            if(Input.GetButtonDown("Jump")) { 
+            if(Input.GetButtonDown("Jump") && !anim.GetBool("isJumping")) // 한 번 점프했을 때 점프 금지
+            { 
                 rigid.AddForce(Vector2.up * jumpPower, ForceMode2D.Impulse);
                 anim.SetBool("isJumping", true);
             }
@@ -44,7 +46,7 @@ public class PlayerMove : MonoBehaviour
     {
         //Move Speed
         float h = Input.GetAxisRaw("Horizontal");
-        rigid.AddForce(Vector2.right * h, ForceMode2D.Impulse);
+        rigid.AddForce(Vector2.right * h * 2, ForceMode2D.Impulse); // 힘이 부족하여 경사로를 올라가지 못해 2를 곱함
 
         //Max Speed
         if(rigid.velocity.x > maxSpeed) // Right Max Speed // velocity : 리지드바디의 현재 속도
@@ -53,15 +55,17 @@ public class PlayerMove : MonoBehaviour
             rigid.velocity = new Vector2(maxSpeed * (-1), rigid.velocity.y);
 
         //Landing Platform
-        Debug.DrawRay(rigid.position, Vector3.down, new Color(0, 1, 0));
-
-        RaycastHit2D rayHit = Physics2D.Raycast(rigid.position, Vector3.down, 1, LayerMask.GetMask("Platform"));
-
-        if(rayHit.collider != null)
+        if(rigid.velocity.y < 0) // 오브젝트가 점프했다가 다시 내려올 때
         {
-            if(rayHit.distance < 0.5f)
-                //Debug.Log(rayHit.collider.name);
-                anim.SetBool("isJumping", false);
+            Debug.DrawRay(rigid.position, Vector3.down, new Color(0, 1, 0));
+            RaycastHit2D rayHit = Physics2D.Raycast(rigid.position, Vector3.down, 1, LayerMask.GetMask("Platform"));
+            if (rayHit.collider != null)
+            {
+                if (rayHit.distance < 0.5f)
+                    //Debug.Log(rayHit.collider.name); // 오브젝트의 위치를 실시간으로 알려줌
+                    anim.SetBool("isJumping", false);
+            }
         }
+       
     }
 }
