@@ -7,6 +7,8 @@ public class EnemyMove : MonoBehaviour
     Rigidbody2D rigid;
     Animator anim;
     SpriteRenderer spriteRenderer;
+    CapsuleCollider2D capsuleCollider;
+
     public int nextMove; // 행동지표를 결정할 변수
 
     void Awake()
@@ -14,6 +16,8 @@ public class EnemyMove : MonoBehaviour
         rigid = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+        capsuleCollider = GetComponent<CapsuleCollider2D>();
+
         Invoke("Think", 5); // 1. 5초가 지나면 Think 함수로 이동한다, 5초 후에 Invoke에 무한히 갇힘
     }
 
@@ -51,12 +55,31 @@ public class EnemyMove : MonoBehaviour
         Invoke("Think", nextThinkTime); // 2. 계속 2초 또는 5초마다 왼쪽,멈춤,오른쪽 3개의 선택지 중 하나가 선택
     }
 
-    void Turn() 
+    void Turn()
     {
         nextMove *= -1; // -1을 곱하여 이동 방향을 바꾸는데
         spriteRenderer.flipX = nextMove == 1;//이동 방향이 -1을 향하고 있을 때만 애니메이션의 방향도 함께 바꾼다
 
         CancelInvoke(); // Think 함수를 해제하여 
         Invoke("Think", 2); // 2초 마다 Think 함수로 돌아가게 한다.
+    }
+
+    public void OnDamaged()
+    {
+        // Sprite Alpha
+        spriteRenderer.color = new Color(1, 1, 1, 0.4f);
+        // Sprite Flip Y
+        spriteRenderer.flipY = true;
+        // Collider Disable
+        capsuleCollider.enabled = false;
+        // Die Effect Jump
+        rigid.AddForce(Vector2.up * 5, ForceMode2D.Impulse);
+        // Destroy
+        Invoke("DeActive", 5);
+    }
+
+    void DeActive()
+    {
+        gameObject.SetActive(false);
     }
 }
